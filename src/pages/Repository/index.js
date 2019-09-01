@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { FaArrowLeft } from 'react-icons/fa';
 import api from '../../services/api';
 import Container from '../../components/Container';
-import { Loading, Owner, IssueList } from './styles';
+import { Loading, Owner, IssueList, Select } from './styles';
 
 export default class Repository extends Component {
   // eslint-disable-next-line react/static-property-placement
@@ -17,9 +17,11 @@ export default class Repository extends Component {
   };
 
   state = {
+    repoName: '',
     repository: {},
     issues: [],
     loading: true,
+    filter: '',
   };
 
   async componentDidMount() {
@@ -30,23 +32,46 @@ export default class Repository extends Component {
       api.get(`/repos/${repoName}`),
       api.get(`/repos/${repoName}/issues`, {
         params: {
-          state: 'open',
+          state: `${this.state.filter || 'open'}`,
           per_page: 5,
         },
       }),
     ]);
 
     this.setState({
+      repoName,
       repository: repository.data,
       issues: issues.data,
       loading: false,
     });
   }
 
+  async componentDidUpdate(_, prevState) {
+    if (prevState.filter !== this.state.filter) {
+      const { repoName } = this.state;
+      const newState = await api.get(`/repos/${repoName}/issues`, {
+        params: {
+          state: `${this.state.filter}`,
+          per_page: 5,
+        },
+      });
+
+      this.setState({
+        issues: newState.data,
+      });
+    }
+  }
+
+  handleOptionChange = e => {
+    this.setState({
+      filter: e.target.value,
+    });
+  };
+
   render() {
     const { repository, issues, loading } = this.state;
 
-    if (loading) {
+    if (loading === true) {
       return <Loading>Carregando.. .</Loading>;
     }
     return (
@@ -59,6 +84,12 @@ export default class Repository extends Component {
           <h1>{repository.name}</h1>
           <p>{repository.description}</p>
         </Owner>
+
+        <Select onChange={this.handleOptionChange}>
+          <option value="open">open</option>
+          <option value="all">all</option>
+          <option value="closed">closed</option>
+        </Select>
 
         <IssueList>
           {issues.map(issue => (

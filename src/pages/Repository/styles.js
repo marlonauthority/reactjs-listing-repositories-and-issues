@@ -109,3 +109,10 @@ export const IssueList = styled.ul`
     }
   }
 `;
+
+export const Select = styled.select`
+  margin-top: 30px;
+  width: 100%;
+  height: 30px;
+  font-size: 15px;
+`;
