@@ -116,3 +116,28 @@ export const Select = styled.select`
   height: 30px;
   font-size: 15px;
 `;
+
+export const Pagination = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 12px;
+
+  button {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    outline: 0;
+    transition: opacity 0.25s ease-out;
+    color: #484848;
+    &:disabled {
+      opacity: 0.2;
+
+      cursor: not-allowed;
+    }
+  }
+  span {
+    color: #999;
+  }
+`;

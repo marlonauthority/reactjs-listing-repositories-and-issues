@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { FaArrowLeft } from 'react-icons/fa';
 import api from '../../services/api';
 import Container from '../../components/Container';
-import { Loading, Owner, IssueList, Select } from './styles';
+import { Loading, Owner, IssueList, Select, Pagination } from './styles';
 
 export default class Repository extends Component {
   // eslint-disable-next-line react/static-property-placement
@@ -22,28 +22,11 @@ export default class Repository extends Component {
     issues: [],
     loading: true,
     filter: '',
+    page: 1,
   };
 
   async componentDidMount() {
-    const { match } = this.props;
-    const repoName = decodeURIComponent(match.params.repo);
-
-    const [repository, issues] = await Promise.all([
-      api.get(`/repos/${repoName}`),
-      api.get(`/repos/${repoName}/issues`, {
-        params: {
-          state: `${this.state.filter || 'open'}`,
-          per_page: 5,
-        },
-      }),
-    ]);
-
-    this.setState({
-      repoName,
-      repository: repository.data,
-      issues: issues.data,
-      loading: false,
-    });
+    this.load();
   }
 
   async componentDidUpdate(_, prevState) {
@@ -62,6 +45,43 @@ export default class Repository extends Component {
     }
   }
 
+  //-> Carrega as issues
+  load = async () => {
+    try {
+      const { filter, page } = this.state;
+      const { match } = this.props;
+      const repoName = decodeURIComponent(match.params.repo);
+
+      const [repository, issues] = await Promise.all([
+        api.get(`/repos/${repoName}`),
+        api.get(`/repos/${repoName}/issues`, {
+          params: {
+            state: `${filter || 'open'}`,
+            per_page: 5,
+            page,
+          },
+        }),
+      ]);
+
+      this.setState({
+        repoName,
+        repository: repository.data,
+        issues: issues.data,
+        loading: false,
+      });
+    } catch (err) {}
+  };
+
+  // -> paginacao
+  handlePage = async e => {
+    const { page } = this.state;
+    await this.setState({
+      page: e === 'Voltar' ? page - 1 : page + 1,
+    });
+    this.load();
+  };
+
+  // -> filtro do select
   handleOptionChange = e => {
     this.setState({
       filter: e.target.value,
@@ -69,7 +89,7 @@ export default class Repository extends Component {
   };
 
   render() {
-    const { repository, issues, loading } = this.state;
+    const { repository, issues, loading, page } = this.state;
 
     if (loading === true) {
       return <Loading>Carregando.. .</Loading>;
@@ -107,6 +127,19 @@ export default class Repository extends Component {
             </li>
           ))}
         </IssueList>
+        <Pagination>
+          <button
+            type="button"
+            onClick={() => this.handlePage('Voltar')}
+            disabled={page < 2}
+          >
+            Anterior
+          </button>
+          <span>Página {page}</span>
+          <button type="button" onClick={() => this.handlePage('Proximo')}>
+            Próximo
+          </button>
+        </Pagination>
       </Container>
     );
   }
