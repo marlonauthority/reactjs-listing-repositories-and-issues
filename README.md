@@ -45,3 +45,5 @@ Adicione apenas um botão de próxima página e página anteior. O botão de pá
 ---
 
 “Para quem fica melhor a cada dia, ficar pronto é utopia”!
+
+<img src=".github/example.gif">
